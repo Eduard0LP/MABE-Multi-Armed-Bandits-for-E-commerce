@@ -1,0 +1,145 @@
+from typing import Any
+
+import numpy as np
+import pandas as pd
+
+def generate_user(user_id: int, product_categories: list[str]) -> dict[str, Any]:
+    """Funtion to generate a user for an e-commerce platform.
+    
+    This function can be used to generate a user for an e-commerce platform so that a Multi-Armed Bandit algorithm
+    can be trained. It has to be combined with the functions generate_products and simulate_interactions in
+    order to generate the final dataset that will be fed to the Multi-Armed Bandit algorithms.
+    
+    Args:
+        user_id: ID that will be given to the user.
+        product_categories: Possible options for the prefered_category field of the user dictionary.
+        
+    Returns:
+        A dictionary containing the following fields:
+            - user_id: The user_id passed as argument to the function.
+            - age: Age of the user. It is an integer between 15 and 70 generated randomly.
+            - gender: Gender of the user. Randomly chosen between male or female (M or F).
+            - preferred_category: Preferred category of products of the user. It can be any given category from the 
+                product_categories list that is passed as argument to the function.
+    """
+    return {
+        'user_id': user_id,
+        'age': np.random.randint(15, 70),
+        'gender': np.random.choice(['M', 'F']),
+        'preferred_category': np.random.choice(product_categories)
+    }
+
+def generate_products(n_products: int, product_categories: list[str]) -> pd.DataFrame:
+    """Funtion to generate the products for an e-commerce platform.
+    
+    This function can be used to generate the products for an e-commerce platform so that a Multi-Armed Bandit 
+    algorithm can be trained. It has to be combined with the functions generate_user and 
+    simulate_interactions in order to generate the final dataset that will be fed to the Multi-Armed Bandit algorithms.
+    
+    Args:
+        n_products: Number of products that will be generated.
+        product_categories: Possible options for the category column of the products dataframe.
+        
+    Returns:
+        A pandas dataframe containing the following columns:
+            - product_id: ID to identify the product.
+            - category: Category the product belongs to. 
+            - base_ctr: Base rate/probability at which the product gets clicked when showed to a user. It is obtained 
+                from sampling a uniform distribution U(0.15, 0.3).
+            - age_aggregate_factor: Coefficient of an additive factor dependant on age that is added to the base_ctr.
+                age_aggregate is a linear function with respect to the age of the user that gets added to the base_ctr
+                probability. It is obtained from a sample of a gaussian distribution N(0.1, 0.05) and clipping this 
+                value to a minimum of 0.02.
+    """
+    products = []
+    for i in range(n_products):
+        products.append({
+            'product_id': i,
+            'category': product_categories[int(i//(n_products/len(product_categories)))],
+            'base_ctr': np.random.uniform(0.15, 0.3),
+            'age_aggregate_factor': np.maximum(np.random.normal(0.1, 0.05), 0.02)
+        })
+    return pd.DataFrame(products)
+
+def _split_randomly(arr: np.ndarray) -> tuple[list[str], list[str]]:
+    """Helper function to randomly split the elements of an array in 2.
+    
+    This function is used to randomly split the categories of the products in the products_df in 2 in the 
+    simulate_interactions function to decide which are the preferred categories of each gender if not passed
+    to that function.
+
+    Args:
+        arr: Array with a variable number of elements.
+    
+    Returns:
+        Two lists with have half of the original elements of the array each. If the array had an odd number of 
+        elements, the second list will have one extra element compared to the first one.
+    """
+    shuffled = np.random.permutation(arr)
+    mid = len(arr) // 2
+    return list(shuffled[:mid]), list(shuffled[mid:])
+
+def simulate_interactions(user: dict[str, Any], products_df: pd.DataFrame, timestamp: pd.Timestamp, 
+                          cat_splits: tuple[list[str], list[str]] | None = None) -> pd.DataFrame:
+    """Funtion to simulate the interactions between a user and all available products.
+    
+    This function simulates for a given user, if he/she would click in each one of the products of the 
+    products_df dataframe if each of these products was recommended to him/her by a Multi-Armed Bandit 
+    algorithm. It has to be combined with the functions generate_user and generate_products to be used as a complete 
+    simulator.
+
+    The probability of clicking on a product if recommended is given by the following expression:
+
+        base_ctr * category_multiplier * gender_multiplier + age_aggregate + hour_aggregate
+    
+    where: 
+        - base_ctr is the value given in the dataframe generated by generate_products.
+        - category_multiplier is a multiplicative factor that has value 1.5 if the category of the product matches
+          the preferred category of the user and 0.75 if not.
+        - gender_multiplier is a multiplicative factor that takes value 1.1 if the category of the product is between 
+          the preferred categories of that gender, and 0.9 if not.
+        - age_aggregate is an additive factor given by the linear expression age_aggregate_factor * age / 70. The 
+          age_aggregate_factor is the one given in the dataframe generated by generate_products.
+        - hour_aggregate is an additive factor given by the linear expression 0.05 * timestamp.hour / 24.
+    
+    Args:
+        user: User data. It is given by the output of the generate_user function.
+        products_df: Dataframe with all the product characteristics.It is given by the output of the generate_products 
+        function.
+        timestamp: Time at which the user accesed the platform.
+        cat_splits: Optional parameter consisting of a tuple with 2 lists. The first list gives the preferred 
+        categories of the male users and the second list the preferred categories of the female users. If not provided
+        the function _split_randomly is called to generate this tuple.
+        
+    Returns:
+        A pandas dataframe containing the following columns:
+            - product_id: ID of the product. It is copied from the column with the same name on products_df.
+            - ctr: Probability of the binomial distribution used to decide whether the user clicked or not on a
+                product if recommended. 
+            - click: Binary variable stating whether the user clicked or not on the product with that
+                product_id if recommended to the user. It is obtained from a sample of a a binomial 
+                distribution B(1, ctr).
+    """
+    age_aggregate = products_df['age_aggregate_factor'].values * user['age'] / 70
+    
+    category_multiplier = np.where(products_df['category'].values == user['preferred_category'], 1.5, 0.75)
+
+    if cat_splits is None:
+        cat_splits = _split_randomly(products_df['category'].unique())
+
+    if user['gender'] == 'M':
+        condition = np.isin(products_df['category'].values, cat_splits[0])
+    elif user['gender'] == 'F':
+        condition = np.isin(products_df['category'].values, cat_splits[1])
+    else:
+        condition = np.zeros(len(products_df), dtype=bool)
+
+    gender_multiplier = np.where(condition, 1.1, 0.9)
+    
+    hour_aggregate = 0.05 * timestamp.hour / 24
+
+    ctr = products_df['base_ctr'].values * category_multiplier * gender_multiplier + age_aggregate + hour_aggregate
+
+    click = np.random.binomial(1, ctr)
+
+    return pd.DataFrame({'product_id': products_df['product_id'], 'ctr': ctr, 'click': click})
