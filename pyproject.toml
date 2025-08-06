@@ -1,0 +1,15 @@
+[project]
+name = "mabe"
+version = "0.1.0"
+description = "MABE-Multi-Arm-Bandits-for-E-commerce package"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.3.1",
+]
+
+[project.optional-dependencies]
+matplotlib = [
+    "scikit-learn>=1.7.1",
+    "seaborn>=0.13.2",
+]
