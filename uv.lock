@@ -171,18 +171,20 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
-matplotlib = [
+examples-dependencies = [
+    { name = "matplotlib" },
     { name = "scikit-learn" },
     { name = "seaborn" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "matplotlib", marker = "extra == 'examples-dependencies'", specifier = ">=3.10.5" },
     { name = "pandas", specifier = ">=2.3.1" },
-    { name = "scikit-learn", marker = "extra == 'matplotlib'", specifier = ">=1.7.1" },
-    { name = "seaborn", marker = "extra == 'matplotlib'", specifier = ">=0.13.2" },
+    { name = "scikit-learn", marker = "extra == 'examples-dependencies'", specifier = ">=1.7.1" },
+    { name = "seaborn", marker = "extra == 'examples-dependencies'", specifier = ">=0.13.2" },
 ]
-provides-extras = ["matplotlib"]
+provides-extras = ["examples-dependencies"]
 
 [[package]]
 name = "matplotlib"
