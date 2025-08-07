@@ -1,6 +1,6 @@
 import numpy as np
 
-class UCBBandit:
+class UCB:
     """Class containing an implementation of the Upper Confidence Bound (UCB) algorithm for Multi-Armed Bandits.
     
     This implementation initialises the average rewards of all the arms at 0, and updates them after each time step.

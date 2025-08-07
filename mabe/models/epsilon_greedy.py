@@ -3,7 +3,7 @@ from typing import Union
 import numpy as np
 
 # TODO: Add save_model and load_model methods.
-class EpsilonGreedyPolicy:
+class EpsilonGreedy:
     """Class containing an implementation of the Epsilon-Greedy algorithm for Multi-Armed Bandits.
     
     This implementation initialises the average rewards of all the arms at 0, and updates them after each time step.

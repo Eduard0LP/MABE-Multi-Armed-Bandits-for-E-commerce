@@ -1,6 +1,6 @@
 import numpy as np
 
-class ThompsonSamplingBandit:
+class ThompsonSampling:
     """Class containing an implementation of the Thompson Sampling (TS) algorithm for Multi-Armed Bandits.
     
     This implementation considers a beta distribution B(alpha, beta) as the prior distribution of the rewards. 
