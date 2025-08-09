@@ -57,7 +57,7 @@ def generate_products(n_products: int, product_categories: list[str]) -> pd.Data
             'product_id': i,
             'category': product_categories[int(i//(n_products/len(product_categories)))],
             'base_ctr': np.random.uniform(0.15, 0.3),
-            'age_aggregate_factor': np.maximum(np.random.normal(0.1, 0.05), 0.02)
+            'age_aggregate_factor': np.clip(np.random.normal(0.1, 0.05), 0.02, 0.4)
         })
     return pd.DataFrame(products)
 
