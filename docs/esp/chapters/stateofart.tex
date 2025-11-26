@@ -1,0 +1,272 @@
+% Preamble
+\documentclass[../main.tex]{subfiles}
+
+% Document
+\begin{document}
+\chapter{Estado del arte}\label{ch:stateofart}
+
+En esta sección se dará una explicación de en qué consiste tanto el problema del
+bandido multibrazo, como el problema del bandido multibrazo contextual, y se
+explicarán en detalle los principales algoritmos que han sido usados clásicamente en
+la literatura para abordar estos problemas.
+
+El problema del bandido multibrazo se da cuando se es presentado con n opciones
+(o acciones) diferentes reiteradamente y se pretende maximizar la recompensa
+obtenida por las opciones escogidas a lo largo de un periodo de tiempo estipulado.
+
+Estas recompensas suelen consistir en valores numéricos provenientes de una
+distribución de probabilidad estacionaria diferente según la acción escogida.
+
+El ejemplo más comúnmente usado para explicar este problema es el de una serie
+de máquinas tragaperras. Cada máquina tragaperras se traduce en un brazo
+diferente del bandido multibrazo y el objetivo del problema será decidir qué máquina
+escoger para maximizar la cantidad de dinero obtenida de los premios de las
+máquinas. Para maximizar estos premios, se buscará escoger aquellas máquinas
+tragaperras que tengan una mayor probabilidad de dar un premio.
+
+Cada una de las acciones de un bandido multibrazo tiene una recompensa media
+esperada, la cual si fuera conocida para cada uno de los brazos convertiría este
+problema en un problema trivial, ya que siempre se escogería la acción que mejor
+recompensa media tuviera. Sin embargo, estas recompensas medias esperadas no
+son conocidas en la mayoría de los casos, o por lo menos no de forma exacta. Por
+este motivo, para poder realizar una estimación de cuál es la recompensa media de
+cada una de las acciones se necesitará probar a escoger cada una de estas y
+evaluar las recompensas obtenidas de forma que se pueda hacer una estimación de
+la media de cada opción posible.
+
+El obtener un buen balance entre probar las diferentes acciones posibles para
+mejorar las estimaciones de las recompensas medias de cada una de estas
+acciones y escoger la acción con la mejor recompensa media según las
+estimaciones disponibles para maximizar la recompensa obtenida es algo
+fundamental en este tipo de problemas y es lo que se conoce como el dilema o
+conflicto de la exploración frente a la explotación.
+
+Este fenómeno de exploración vs. explotación es un concepto ampliamente
+estudiado en el ámbito del aprendizaje por refuerzo y no existe una solución única
+que permita resolver este problema para cualquier bandido multibrazo.
+
+Por este motivo, existen un gran número de algoritmos que son usados hoy en día
+para resolver esta clase de problemas, cada uno de ellos balanceando de una forma
+distinta este equilibrio entre exploración y explotación.
+
+De forma general, algoritmos con un mayor grado de explotación obtendrán mejores
+recompensas acumuladas en periodos cortos de tiempo, mientras que algoritmos
+con un mayor grado de exploración obtendrán mejores recompensas acumuladas en
+periodos más largos de tiempo, ya que estos últimos es más probable que
+encuentren acciones con mejores recompensas medias que las acciones que en un
+principio se creía que tenían las mejores recompensas medias de entre todas las
+acciones posibles.
+
+Los algoritmos clásicos más utilizados para la resolución de los problemas de
+bandido multibrazo son el $\epsilon$-greedy, Upper Confidence Bound (UCB) y Thompson
+Sampling (TS). A continuación, se explicará la matemática detrás de cada uno de
+estos algoritmos. Para información más detallada se pueden consultar \textcite{sutton2018}
+para los dos primeros algoritmos y \textcite{russo2017} para Thompson Sampling.
+
+\textbf{Algoritmo $\epsilon$-greedy}: Este algoritmo o grupo de algoritmos consisten en escoger la
+acción que se prevé que va a dar la mejor recompensa con probabilidad $\left(1 - \epsilon\right)$.
+Desde un punto de vista formal se tiene que:
+
+Dada una acción $a$, la estimación del valor de dicha acción en un paso temporal $t$
+será:
+
+\begin{equation*}
+    Q_{t}\left(a\right) = \dfrac{r_{1} + r_{2} + ... + r_{n_{t}\left(a\right)}}{n_{t}\left(a\right)}
+\end{equation*}
+
+Donde $r_{1}, r_{2}, ..., r_{n_{t}\left(a\right)}$ son las recompensas de los $n_{t}\left(a\right)$ 
+pasos temporales previos en los que la acción a fue escogida. Este método para estimar el valor de
+las acciones es conocido como el método del promedio muestral.
+
+Cuando $n_{t}\left(a\right) = 0$ se asigna a $Q_{t}\left(a\right)$ un valor por defecto, y cuando 
+$n_{t}\left(a\right) \rightarrow \inf$, por la ley de los grandes números se tiene que 
+$Q_{t}\left(a\right) = q\left(a\right)$, donde $q\left(a\right)$ es el valor real de la
+acción $a$.
+
+Un algoritmo \textit{greedy} escogerá para un tiempo $t$ la acción:
+
+\begin{equation*}
+    a_{t} = argmax_{a} Q_{t}\left(a\right)
+\end{equation*}
+
+Donde $a_{t}$ es la acción escogida en el tiempo $t$. En caso de que haya varias acciones
+que maximicen $Q_{t}$, la acción escogida será una aleatoria de entre todas las que lo
+maximicen.
+
+El algoritmo $\epsilon$-greedy escogerá esa acción con probabilidad $\left(1 - \epsilon\right)$, 
+siendo $\epsilon$ un valor fijo perteneciente al intervalo $\left[0, 1\right]$, y otra acción diferente escogida de forma completamente aleatoria con probabilidad $\epsilon$.
+
+Cuando $\epsilon = 0$, estaremos ante el caso de un algoritmo completamente \textit{greedy}, y
+cuando $\epsilon = 1$ estaremos ante un algoritmo que escoge acciones de forma
+completamente aleatoria.
+
+\textbf{Algoritmo Upper Confidence Bound (UCB)}: Al contrario que para el caso de los
+métodos $\epsilon$-greedy, la exploración de las acciones que a priori no son óptimas se
+hace siguiendo una estrategia diferente a la de escoger una acción aleatoria de
+entre todas las posibles. En el caso del algoritmo UCB, la elección de la acción a
+explorar se hace en función del potencial que tienen cada una de las acciones de
+llegar a maximizar la recompensa, teniendo en cuenta tanto cuan cerca está la
+estimación de la media de cada acción de la acción cuya recompensa media es
+máxima, como la incertidumbre de dichas estimaciones.
+
+La decisión de qué acción escoger se hace en este caso siguiendo la fórmula:
+
+\begin{equation*}
+    a_{t} = argmax_{a}\left[Q_{t}\left(a\right) + \alpha \sqrt{\dfrac{ln t}{n_{t}\left(a\right)}}\right]
+\end{equation*}
+
+Donde $ln t$ denota el logaritmo neperiano de $t$ y $\alpha > 0$ es un parámetro ajustable que
+controla el grado de exploración del algoritmo. Si $n_{t}\left(a\right) = 0$, se considera que
+$a$ está maximizando la acción, evitando así divisiones por 0.
+
+El término que se encuentra dentro de la raíz cuadrada sirve como una medida de la
+incertidumbre de la estimación del valor de la recompensa de la acción $a$.
+
+\textbf{Algoritmo Thompson Sampling (TS)}: Este algoritmo tiene un componente más
+probabilístico que los algoritmos anteriores, que se basan en estimar la acción a
+escoger de forma empírica directamente desde los resultados de las acciones
+escogidas en los pasos temporales anteriores.
+
+En este caso se supone que las recompensas de las diferentes acciones a escoger
+siguen distribuciones de probabilidad definidas a priori y que van actualizándose
+cada vez que se escoge una acción y se obtiene una recompensa.
+
+Más formalmente: dada una distribución de probabilidad a priori $p_{0}\left(a\right)$, para cada
+acción $a$, en cada paso del algoritmo de Thompson Sampling se muestrea aleatoriamente un 
+$\hat{Q}_{t}\left(a\right) ~ p_{t}\left(a\right)$, siendo $p_{t}\left(a\right)$ la distribución 
+de probabilidad a posteriori en el paso $t$ de la acción $a$. Para ese tiempo $t$ la acción 
+escogida será:
+
+\begin{equation*}
+    a_{t} = argmax_{a}\hat{Q}_{t}\left(a\right)
+\end{equation*}
+
+La distribución de probabilidad a posteriori se obtiene a partir de $p_{0}\left(a\right)$, 
+aplicando el teorema de Bayes de la siguiente forma:
+
+\begin{equation*}
+    p\left(a | r_{1}, ..., r_{n_{t}\left(a\right)}\right) = \dfrac{p\left(r_{1}, ..., r_{n_{t}\left(a\right)} | a\right) \cdot p_{0}\left(a\right)}{p\left(r_{1}, ..., r_{n_{t}\left(a\right)}\right)}
+\end{equation*}
+
+Donde $a$ es la acción para la que se quiere estimar la distribución de probabilidad,
+$r_{1}, ..., r_{n_{t}\left(a\right)}$ son las recompensas de los $n_{t}\left(a\right)$ pasos temporales previos en los que dicha acción fue escogida y $p\left(a | r_{1}, ..., r_{n_{t}\left(a\right)}\right) = p_{t}\left(a\right)$.
+
+Esta actualización de la distribución a posteriori se puede hacer en cada paso
+temporal mediante la fórmula recursiva:
+
+\begin{equation*}
+    p_{t+1}\left(a\right) \propto p\left(r_{t} | a\right) \cdot p_{t}\left(a\right)
+\end{equation*}
+
+Una extensión ampliamente conocida y estudiada del problema del bandido
+multibrazo es el conocido como bandido multibrazo contextual. En este problema,
+además de la información disponible en un problema de bandido multibrazo clásico
+existe también un contexto, el cual es conocido antes de la toma de cualquier
+decisión y proporciona información relevante sobre el entorno o el usuario, pudiendo
+ayudar a tomar una mejor decisión en lo que respecta a qué acción escoger.
+
+Este contexto, que se denotará $x_{t} \in X$, suele venir dado por un vector de
+características. Los diferentes contextos disponibles son usados para ajustar
+modelos (un modelo diferente para cada acción disponible) para predecir la
+recompensa que se obtendrá en cada caso.
+
+Clásicamente, los modelos usados para esta finalidad solían ser modelos lineales,
+aunque en la actualidad también se usan modelos no lineales más complejos
+basados en redes neuronales o árboles de decisión.
+
+En este documento serán tratados los algoritmos de Linear Upper Confidence Bound
+(LinUCB) y Linear Thompson Sampling (LinTS), los cuales son extensiones de los
+algoritmos presentados previamente a los bandidos multibrazo contextuales
+mediante el uso de algoritmos lineales para modelar el contexto. Para más
+información sobre el primer algoritmo se puede consultar \textcite{zhou2015}, y para el
+segundo \textcite{russo2017}.
+
+\textbf{Algoritmo Linear Upper Confidence Bound (LinUCB)}: Consiste en una extensión
+del algoritmo UCB mediante el uso de algoritmos lineales para modelar el contexto.
+De forma más rigurosa, este algoritmo se puede enunciar como:
+
+Dado un contexto $x_{t, a} \in \mathbb{R}^{d}$ para cada acción $a$ y cada tiempo $t$, 
+la recompensa esperada se considerará que es una función lineal del contexto de la siguiente
+forma:
+
+\begin{equation*}
+    Q_{t}\left(a\right) = x_{t, a}^{\top}\theta^{*}
+\end{equation*}
+
+Donde $\theta^{*} \in \mathbb{R}^{d}$ es un vector de parámetros desconocido el cual permite 
+minimizar la función de pérdida
+
+\begin{equation*}
+    R\left(T\right) = \sum_{t = 1}^{T} \left(x_{t, a_{t}^{*}}^{\top}\theta^{*} - x_{t, a_{t}}^{\top}\theta^{*}\right)
+\end{equation*}
+
+Donde $a_{t}^{*} =argmax_{a \in A} x_{t, a}^{\top}\theta^{*}$.
+
+Esta función de pérdida es conocida como el regret acumulado.
+
+En cada paso del algoritmo se tiene una estimación de $\theta^{*}$ proveniente del modelo
+lineal. Dicha estimación se denotará $\hat{\theta}_{t}$ y la acción escogida en cada paso será:
+
+\begin{equation*}
+    a_{t} = argmax_{a} x_{t, a}^{\top}\hat{\theta}_{t-1} + \alpha \cdot \sqrt{x_{t, a}^{\top} A_{t-1}^{-1}x_{t, a}}
+\end{equation*}
+
+Donde $\alpha > 0$ es el mismo parámetro ajustable que controla el grado de exploración
+del algoritmo de UCB y la matriz $A_{t-1}$ proviene del modelo lineal, el cual consiste en
+una regresión ridge (regularizada) de la siguiente forma:
+
+\begin{equation*}
+    \hat{\theta}_{t} = A_{t}^{-1} b_{t}
+\end{equation*}
+
+Donde
+
+\begin{equation*}
+    A_{t} = \lambda I + \sum_{s=1}^{t} x_{s, a_{s}} x_{s, a_{s}}^{\top} \in \mathbb{R}^{d \times d}
+\end{equation*}
+
+\begin{equation*}
+    b_{t} = \sum_{s=1}^{t} r_{s} x_{s, a_{s}} \in \mathbb{R^{d}}
+\end{equation*}
+
+\begin{equation*}
+    A_{0} = \lambda I
+\end{equation*}
+
+con $\lambda$ el parámetro entrenable de la regresión lineal, $I$ la matriz identidad, $r_{s}$ la
+recompensa para un tiempo $s$ y $x_{s, a_{s}}$ el contexto para la acción $a_{s}$ en el tiempo $s$.
+
+\textbf{Algoritmo Linear Thompson Sampling (LinTS)}: Es una extensión del algoritmo de
+Thompson Sampling mediante el uso de modelos lineales para tener en cuenta el contexto.
+
+Al igual que para el algoritmo anterior, la recompensa esperada viene dada por la
+ecuación:
+
+\begin{equation*}
+    Q_{t}\left(a\right) = x_{t, a}^{\top}\theta^{*}
+\end{equation*}
+
+Pero, en este caso, $\hat{\theta}_{t}$, la estimación del vector de parámetros $\theta^{*}$, 
+consiste en una muestra aleatoria de una distribución a posteriori de vectores de parámetros,
+$p_{t}\left(\theta\right)$, la cual se calcula a partir de una distribución a priori, 
+$p_{0}\left(\theta\right)$, aplicando el teorema de Bayes de forma análoga al caso del 
+algoritmo de Thompson Sampling, siempre y cuando esta distribución a priori sea conjugada de
+la a posteriori, es decir, pertenezcan a la misma familia. En caso de que no sea así, habría
+que recurrir a métodos numéricos, como, por ejemplo, Markov Chain Monte Carlo (MCMC), para el
+cálculo de dicha distribución a posteriori.
+
+Por tanto, tomando un $\hat{\theta}_{t} \sim p_{t}\left(\theta\right)$, la acción escogida será:
+
+\begin{equation*}
+    a_{t} = argmax_{a}x_{t, a}^{\top}\hat{\theta}_{t}
+\end{equation*}
+
+Por último, cabe mencionar que el paso de estos modelos lineales para utilizar la
+información del contexto a modelos no lineales consiste en sustituir la expresión
+lineal $Q_{t}\left(a\right)=x_{t, a}^{\top} \theta^{*}$ por una expresión no lineal
+$Q_{t}\left(a\right)=f^{*}\left(x_{t , a}\right)$ donde $f^{*}$ es una función no lineal.
+
+Sin embargo, este paso de una función lineal a una no lineal conlleva una serie de
+complicaciones teóricas que no van a ser tratadas en este trabajo.
+
+\end{document}

@@ -1,0 +1,171 @@
+% Preamble
+\documentclass[../main.tex]{subfiles}
+
+% Document
+\begin{document}
+\chapter{Metodología}\label{ch:methodology}
+
+Como ya fue mencionado previamente, la parte práctica de este trabajo consistirá en
+aplicar los bandidos multibrazo a una plataforma de comercio electrónico. En este
+apartado se detallará el procedimiento seguido para llevar a cabo este caso de uso.
+
+Como es habitual en el caso de las aplicaciones del aprendizaje por refuerzo, en vez
+de usar directamente un conjunto de datos para entrenar los modelos
+implementados, se construyó un simulador o bot contra el que usar los algoritmos,
+es decir, este bot genera para cada paso temporal (o turno) una recompensa para la
+acción escogida por el algoritmo utilizado. Una vez devuelta la recompensa, se
+actualiza la política del algoritmo del bandido multibrazo sobre sus preferencias
+sobre qué acción escoger en cada caso y se avanza al siguiente turno, donde el
+simulador genera un nuevo usuario, el algoritmo sugiere la acción más adecuada
+para ese usuario, y el simulador devuelve la recompensa de dicha acción.
+
+En este caso, el usuario corresponderá con un usuario que ha accedido a la página
+web, las acciones serán los posibles productos que recomendar, y la recompensa
+será si el usuario clica o no en el producto recomendado para realizar una compra.
+
+El simulador utilizado es de creación propia, y su funcionamiento es el siguiente:
+\begin{itemize}
+    \item Primero se utiliza una función para generar un conjunto de usuarios que serán
+los posibles clientes. Estos usuarios tendrán asociado un id, edad, género y
+una categoría de productos preferida.
+    \begin{itemize}
+        \item El id es un número que permitirá identificar a los usuarios de forma
+unívoca.
+        \item La edad se generará como un número entero aleatorio entre 15 y 70.
+        \item El género será una elección aleatoria entre masculino (M) y femenino (F).
+        \item Y la categoría preferida será una aleatoria de entre 5 categorías:
+tecnología, moda, libros, deportes y hogar.
+    \end{itemize}
+    \item Se utiliza otra función diferente para generar los productos que habrá
+disponibles en la plataforma de comercio electrónico. Estos productos tendrán
+asociados un id, una categoría, una tasa base de clics que recibe el producto
+en la plataforma y un factor de edad.
+    \begin{itemize}
+        \item El id en este caso, también será un número entero que permitirá identificar
+los productos de forma unívoca.
+        \item La categoría es la sección a la que pertenece el producto. Al igual que se
+mencionó para el generador de usuarios, las categorías posibles serán:
+tecnología, moda, libros, deportes y hogar. El simulador está diseñado de
+forma que todas las categorías tengan el mismo número de productos.
+        \item La tasa base de clics define la probabilidad base (previa a tener ningún
+tipo de información del cliente o de la hora de acceso a la página web) de
+que se haga clic en un determinado producto si este es recomendado a un
+cliente. Estas probabilidades son generadas a partir de una distribución
+uniforme con límite inferior en 0,15 y límite superior en 0,3, $U\left(0.15, 0.3\right)$.
+        \item El factor de edad estima como de atractivo es un producto para los
+clientes según sus edades. Este factor añade un sumando que sigue una
+función lineal a la tasa base de clics (más información sobre esta más
+adelante). Los valores de este factor provienen de muestras aleatorias de
+una normal $N\left(0.1, 0.05\right)$ acotados inferiormente por 0,02, es decir, si
+alguna de las muestras aleatorias tomadas fuera inferior a 0,02, el valor de
+esa muestra sería fijado a dicho valor, y superiormente por 0,4.
+    \end{itemize}
+    \item El tercer y último elemento del simulador es el simulador de interacciones, el
+cual se encarga de, para cada interacción usuario-producto, decidir si el
+usuario clicó o no en el producto recomendado.
+\end{itemize}
+
+Esta decisión de si el usuario clicó o no en el producto recomendado se hace
+tomando una muestra de una distribución Bernoulli, $Bernoulli\left(p\right)$, cuya
+probabilidad se calcula como se explicará a continuación:
+
+Para cada producto, como ya se mencionó previamente, existe una tasa base
+de clics cuyos valores provienen de muestras de una distribución uniforme
+continua $U\left(0.15, 0.3\right)$.
+
+A esta tasa base se le multiplica un factor según si la categoría de productos
+preferida del cliente coincide con la categoría del producto. Este factor será de
+1,5 en caso de que coincidan y de 0,75 en caso de que no.
+
+También se le multiplica un factor de género según la categoría del producto
+sugerido. Si el usuario es de género masculino y el producto sugerido es de
+las categorías de deportes o de tecnología se multiplicará por un factor de 1,1,
+y si es de las otras 3 categorías el factor será de 0,9. En caso de que el
+usuario sea de género femenino, los factores serán al revés, 0,9 para los
+productos de las categorías de deportes y de tecnología, y 1,1 para las otras
+tres categorías.
+
+A esta tasa de clics también se le añaden dos sumandos adicionales, uno de
+los cuales sigue una función lineal en función de la edad del usuario y el otro
+sigue otra función lineal en función de la hora a la que el usuario accedió a la
+página web.
+
+Por tanto, la tasa de clics final vendrá dada por la expresión:
+
+\begin{equation*}
+    ctr = base \cdot cat \cdot gen + age + hour
+\end{equation*}
+
+Donde $base$ es la tasa base de clics, $cat \in \left\lbrace 0.75 ,1.5\right\rbrace$ es el factor de
+coincidencia de categorías explicado previamente, $gen \in \left\lbrace 0.9 ,1.1\right\rbrace$ es el factor de género también previamente explicado, $age$ es el sumando lineal en
+función de la edad del usuario y $hour$ es el sumando lineal en función de la
+hora a la que se accedió a la página.
+
+El sumando $age$ viene dado por la expresión:
+
+\begin{equation*}
+    age= \dfrac{a \cdot x}{70}
+\end{equation*}
+
+Donde $a \in N\left(0.1, 0.05\right)$ es el coeficiente de la regresión lineal y $x$ la edad del
+usuario. El valor de $a$, además es forzado a estar acotado en el intervalo $\left[0.02, 0.4\right]$.
+
+El sumando $hour$ viene dado por la expresión:
+
+\begin{equation*}
+    hour= \dfrac{0.05 \cdot x}{24}
+\end{equation*}
+
+donde en este caso $x$ es la hora de acceso a la página web.
+
+Tras el diseño de este simulador, el siguiente paso fue utilizar dicho simulador como
+el generador de datos para entrenar los algoritmos de aprendizaje por refuerzo
+presentados en el estado del arte.
+
+Para el caso de los algoritmos del bandido multibrazo que no utilizan el contexto ($\epsilon$-
+Greedy, UCB y TS) este fue ignorado, mientras que para los algoritmos del bandido
+multibrazo contextual (LinUCB y LinTS) el contexto sí que fue utilizado. Sin embargo,
+este contexto, dado que contiene variables categóricas (género, categoría preferida
+del usuario y categoría del producto), dichas variables tuvieron que transformarse, ya
+que no pueden usarse directamente para entrenar los modelos lineales subyacentes
+de estos algoritmos.
+
+Estas variables fueron codificadas utilizando One-Hot encoding, lo cual consiste en
+crear una variable binaria para cada categoría de una de estas variables
+categóricas, de forma que esa variable vale 1 si el dato seleccionado pertenece a
+dicha categoría y 0 en caso contrario.
+
+Hay otras formas alternativas de codificar estas variables categóricas, como, por
+ejemplo, la codificación ordinal, en la que a cada categoría de una variable se le
+asigna un número diferente. Sin embargo, se decidió escoger el One-Hot encoding
+ya que este no introduce ningún sesgo en las diferentes categorías de una variable,
+como sí lo hace, por ejemplo, la codificación ordinal, la cual asigna un orden a las
+diferentes categorías.
+
+Antes de realizar una comparativa de los diferentes modelos, los hiperparámetros de
+los algoritmos de $\epsilon$-Greedy, Upper Confidence Bound, Linear Upper Confidence
+Bound y Linear Thompson Sampling fueron optimizados individualmente para poder
+tener la mejor versión posible de cada uno de estos modelos de cara a hacer una
+comparativa justa.
+
+Notar que los hiperparámetros del algoritmo de Thompson Sampling no fueron
+optimizados. Esto es debido a que este algoritmo carece de hiperparámetros
+numéricos similares a los de los otros algoritmos. En este caso, el único
+hiperparámetro es la elección de la distribución a priori utilizada, la cual se fijó a una
+distribución beta.
+
+Tras esta optimización de hiperparámetros, todos los modelos fueron entrenados a
+la vez, de forma que el usuario seleccionado en cada paso temporal del problema
+fuera el mismo para todos los algoritmos. Para este usuario, se simuló si haría clic
+en cada uno de los diferentes productos disponibles en la plataforma si estos le
+fueran sugeridos, y una vez hecho esto se llamó a los modelos para que realizaran
+sus sugerencias y se devolviera el resultado del producto sugerido. Con el resultado
+de la sugerencia de cada algoritmo, estos fueron actualizados (cada uno únicamente
+con el resultado de su producto sugerido) y se pasó a la siguiente iteración.
+
+Para medir el rendimiento de todos estos algoritmos tanto la recompensa acumulada
+como el regret acumulado fueron utilizados. Además de estas métricas, la precisión
+(número de veces que la mejor acción posible fue sugerida / número de pasos
+temporales) y la proporción de accesos que terminaron en que el usuario clicara en
+el producto sugerido (tasa de éxito) también fueron analizadas.
+\end{document}

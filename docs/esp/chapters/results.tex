@@ -1,0 +1,165 @@
+% Preamble
+\documentclass[../main.tex]{subfiles}
+
+% Document
+\begin{document}
+\chapter{Resultados y discusión}\label{ch:results}
+
+Con el objetivo de medir el rendimiento de todos los algoritmos introducidos
+previamente en la práctica, se hizo uso del simulador introducido en la sección
+anterior.
+
+Para estas pruebas, se generó un conjunto de datos con 200 usuarios diferentes. En
+cada paso temporal de los algoritmos, uno de estos usuarios fue escogido
+aleatoriamente como aquel que accedió a la página en dicho momento (este
+muestreo fue realizado con reposición, es decir, un mismo usuario pudo ser escogido
+un número indefinido de veces).
+
+Por otro lado, se generó también otro conjunto de datos con 10 productos diferentes
+a recomendar, dos productos de cada una de las categorías introducidas
+anteriormente.
+
+Por último, se procedió a utilizar el simulador con estos conjuntos de datos para
+comprobar si las recomendaciones de los diferentes algoritmos conseguían que el
+usuario hiciera clic en el producto sugerido. Esto se hizo durante 25.000 pasos
+temporales con todos los algoritmos al mismo tiempo, es decir, se simularon 25.000
+accesos a la página web por alguno de los usuarios generados y se comprobó si las
+recomendaciones generadas por cada uno de los algoritmos consiguieron que el
+usuario hiciera clic en dicho producto o no. Este proceso se repitió 5 veces y las
+métricas de estas iteraciones fueron promediadas y estudiadas.
+
+Antes de la comparación de unos algoritmos con otros, se siguió este mismo
+procedimiento para la optimización de hiperparámetros de los diferentes algoritmos.
+Para el caso del algoritmo $\epsilon$-Greedy, se probaron valores del parámetro $\epsilon$ desde 0,01
+hasta 1. De todos estos valores, $\epsilon = 0.1$ fue el valor para el que se obtuvo la mejor
+recompensa acumulada. Los resultados de estas pruebas con diferentes valores del
+parámetro $\epsilon$ se pueden observar en la figura \ref{fig:rec_acum_epsilon_greedy}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/rec_acum_epsilon_greedy.png}
+\caption{Gráfica con la evolución de la recompensa acumulada a lo largo del tiempo para diferentes valores 
+del parámetro $\epsilon$ del algoritmo $\epsilon$-Greedy.}
+\label{fig:rec_acum_epsilon_greedy}
+\end{figure}
+
+Para el algoritmo de UCB, se probaron valores del parámetro $\alpha$ desde 0,05 hasta 10
+y los mejores resultados fueron obtenidos para $\alpha=0.25$ y $\alpha=0.5$. De entre estos dos
+valores, $\alpha=0.25$ fue el que finalmente fue escogido para utilizar en la comparativa
+entre los diferentes algoritmos. Los resultados de esta optimización de
+hiperparámetros se pueden ver en la figura \ref{fig:rec_acum_ucb}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/rec_acum_ucb.png}
+\caption{Gráfica con la evolución de la recompensa acumulada a lo largo del tiempo para 
+diferentes valores del parámetro $\alpha$ del algoritmo UCB.}
+\label{fig:rec_acum_ucb}
+\end{figure}
+
+Para el algoritmo de LinUCB, se obtuvo que en este caso los valores de $\alpha$ que
+mejores resultados dieron fueron $\alpha = 0.75$ y $\alpha = 1$ de entre todos los probados
+(se probaron los mismos valores que para UCB). De entre estos dos valores se escogió
+$\alpha = 0.75$ para la comparativa entre los diferentes algoritmos. Los resultados de estas
+pruebas se pueden ver en la figura \ref{fig:rec_acum_linucb}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/rec_acum_linucb.png}
+\caption{Gráfica con la evolución de la recompensa acumulada a lo largo del tiempo para 
+diferentes valores del parámetro $\alpha$ del algoritmo LinUCB.}
+\label{fig:rec_acum_linucb}
+\end{figure}
+
+Y para el algoritmo LinTS, se probaron valores del parámetro $\nu$ entre 0,1 y 5,
+obteniéndose los mejores resultados para $\nu = 0.3$. Estos resultados están
+representados en la figura \ref{fig:rec_acum_lints}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/rec_acum_lints.png}
+\caption{Gráfica con la evolución de la recompensa acumulada a lo largo del tiempo para 
+diferentes valores del parámetro $\nu$ del algoritmo LinTS.}
+\label{fig:rec_acum_lints}
+\end{figure}
+
+Una vez optimizados los hiperparámetros de todos los algoritmos, se procedió a la comparativa de los algoritmos entre sí. Para ello, se utilizaron los valores de los parámetros previamente mencionados y se compararon los valores de las métricas obtenidos de cada uno de los algoritmos.
+
+En lo que respecta a la evolución de las recompensas acumuladas, en la gráfica de la figura 
+\ref{fig:rec_acum_all} puede apreciarse que, como era de esperar, los algoritmos 
+contextuales son superiores a los que ignoran el contexto en el caso de que este esté 
+disponible, y todos estos algoritmos, con o sin contexto, son claramente mejores que 
+escoger los productos a recomendar de forma completamente aleatoria. En particular, el 
+algoritmo de LinTS obtiene unos resultados ligeramente superiores a LinUCB, siendo por 
+tanto, el mejor de todos los estudiados para este caso concreto. 
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/rec_acum_all.png}
+\caption{Gráfica con la evolución de la recompensa acumulada a lo largo del tiempo para los 
+diferentes algoritmos utilizados.}
+\label{fig:rec_acum_all}
+\end{figure}
+
+Por otro lado, si se observa el regret acumulado (figura \ref{fig:reg_acum_all}), el orden
+de mejor a peor rendimiento de los algoritmos fue prácticamente el mismo (notar que en el 
+caso del regret acumulado se busca que este sea lo menor posible). El algoritmo con el 
+menor regret acumulado fue también LinTS, seguido de cerca por LinUCB y con una clara 
+ventaja sobre el resto de los algoritmos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/reg_acum_all.png}
+\caption{Gráfica con la evolución del regret acumulado a lo largo del tiempo para los 
+diferentes algoritmos utilizados.}
+\label{fig:reg_acum_all}
+\end{figure}
+
+Además de estas dos métricas, también se midieron la tasa de éxito y la precisión de los 
+algoritmos, cuyos resultados se pueden ver en la tabla \ref{tab:success_precision_table}. 
+Para estas métricas, LinTS también fue el algoritmo que obtuvo los mejores resultados.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{l c c}
+\hline
+\rowcolor[HTML]{EFEFEF}
+\textbf{Algoritmo} & \textbf{Tasa de éxito} & \textbf{Precisión} \\
+\hline
+Elección aleatoria & 0,261 & 0,099 \\
+\rowcolor[HTML]{E6E6E6}
+Epsilon-Greedy & 0,336 & 0,283 \\
+UCB & 0,349 & 0,321 \\
+\rowcolor[HTML]{E6E6E6}
+TS & 0,344 & 0,307 \\
+LinUCB & 0,395 & 0,657 \\
+\rowcolor[HTML]{E6E6E6}
+LinTS & 0,401 & 0,744 \\
+\hline
+\end{tabular}
+\caption{Resultados de la tasa de éxito y precisión de todos los algoritmos utilizados.}
+\label{tab:success_precision_table}
+\end{table}
+
+En lo que respecta al regret acumulado, cabe mencionar que en este caso fue calculado a 
+partir de datos empíricos mediante la fórmula:
+
+\begin{equation*}
+    R\left(T\right) = \sum_{t=1}^{T}\left(\hat{r}_{t} - r_{t}\right)
+\end{equation*}
+
+Donde $r_{t}$ es la recompensa del algoritmo seleccionado en ese paso temporal y 
+$\hat{r}_{t}$ es, de todas las posibles recompensas que podrían haberse dado en dicho paso 
+temporal según el producto recomendado, aquella que fue máxima.
+
+El hecho de usar esta fórmula alternativa para el cálculo del regret acumulado es debido a 
+que la fórmula teórica introducida previamente en el estado del arte no puede ser usada 
+directamente en la práctica en la mayoría de los casos, ya que en algunos casos, la acción
+cuya recompensa es óptima es desconocida, o como en este caso, al tratarse de un proceso 
+estocástico (al estar muestreando de una distribución Bernoulli) la acción óptima, que es 
+aquella con mayor probabilidad de que dicha sugerencia sea exitosa, puede no ser exitosa, 
+mientras que otra sugerencia con menor probabilidad de éxito sí puede acabar siéndolo. Esto 
+conllevaría que el regret, calculado mediante la fórmula teórica, pudiera ser negativo en 
+algún paso temporal, lo cual no es posible por definición, como es explicado en \textcite{loomes1982}.
+
+\end{document}

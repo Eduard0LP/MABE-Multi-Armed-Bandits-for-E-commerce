@@ -1,0 +1,131 @@
+% Preamble
+\documentclass[../main.tex]{subfiles}
+
+% Document
+\begin{document}
+\chapter{Implementación del código en Python}\label{ch:annex}
+
+En este anexo se muestra el código de Python usado para la implementación del simulador, 
+los algoritmos de $\epsilon$-Greedy, UCB, TS, LinUCB y LinTS, y el entrenamiento de estos 
+con los datos generados por el simulador. Todo este código está disponible en el 
+repositorio de GitHub accesible mediante la siguiente URL: 
+\url{https://github.com/Eduard0LP/MABE-Multi-Armed-Bandits-for-E-commerce}
+
+La implementación de todo el código relacionado con los modelos y el simulador se realizó
+utilizando únicamente las librerías de \textit{numpy} y \textit{pandas} como dependencias.
+Además de estas librerías, también fueron usadas en el código realizado las librerías de 
+\textit{scikit-learn} para la codificación de las variables categóricas en variables 
+numéricas durante el entrenamiento de las regresiones lineales de los algoritmos 
+contextuales, y las librerías de \textit{matplotlib} y \textit{seaborn} para la
+representación gráfica de los resultados.
+
+En lo que respecta al simulador, la función que genera los usuarios que serán los 
+potenciales clientes de la plataforma de comercio electrónico fue llamada 
+\textit{generate\_user} y devuelve los datos de un usuario en un diccionario de Python. 
+Su implementación se puede ver en la figura \ref{fig:generate_user_function}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/generate_user_function.png}
+\caption{Función en Python usada para generar los usuarios de la página web.}
+\label{fig:generate_user_function}
+\end{figure}
+
+Para generar los productos se utilizó la función \textit{generate\_products} (Figura 
+\ref{fig:generate_products_function}), la cual retorna un \textit{dataframe} de 
+\textit{pandas} con los datos de todos los productos disponibles.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/generate_products_function.png}
+\caption{Función en Python usada para generar los productos de la página web.}
+\label{fig:generate_products_function}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/generate_user_and_product_call.png}
+\caption{Fragmento de código en que las funciones \textit{generate\_user} y 
+\textit{generate\_products} son llamadas para generar los usuarios y los productos.}
+\label{fig:generate_user_and_product_call}
+\end{figure}
+
+El tercer y último elemento del simulador, como se mencionó en la sección de metodología,
+era el encargado de simular las interacciones entre usuarios y productos, lo cual se 
+implementó con la función \textit{simulate\_interactions}, la cual recibe los datos del
+usuario generado por \textit{generate\_user} y el dataframe generado por 
+\textit{generate\_products} y simula si para cada producto de dicho \textit{dataframe} 
+dicho usuario haría clic o no en el producto si este le fuera recomendado. Los resultados
+de todas estas simulaciones son retornados en un nuevo \textit{dataframe}. La 
+implementación de dicha función se puede ver en la figura 
+\ref{fig:simulate_interactions_functions}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/simulate_interactions_functions.png}
+\caption{Función en Python para simular las interacciones producto-cliente.}
+\label{fig:simulate_interactions_functions}
+\end{figure}
+
+En lo que respecta a las implementaciones de los algoritmos discutidos en el trabajo, estos
+fueron implementados usando clases de Python con 3 métodos principales: un método 
+\textit{\_\_init\_\_} para inicializar la clase con la parametrización adecuada del 
+algoritmo, un método \textit{select\_action} mediante el cual el algoritmo realiza la 
+recomendación de un producto en función del contexto y un método \textit{update} para 
+actualizar los parámetros del algoritmo tras recibir el resultado de si la recomendación 
+realizada tuvo recompensa o no. Es importante destacar que incluso para los algoritmos que 
+no utilizan el contexto, este es pasado a los métodos \textit{select\_action} y 
+\textit{update} y en esas clases simplemente es ignorado.
+
+Esto está hecho así para mantener exactamente el mismo formato en todos los modelos y así 
+facilitar el entrenamiento de todos ellos a la vez en un solo bucle de entrenamiento con el 
+simulador. Las implementaciones de todos estos modelos se pueden ver en las figuras 
+\ref{fig:epsilon_greedy_model}, \ref{fig:ucb_model}, \ref{fig:ts_model}, 
+\ref{fig:linucb_model} y \ref{fig:lints_model}. En lo que respecta al entrenamiento de 
+todos los modelos, este se realizó a la vez en el bucle de entrenamiento que se puede ver
+en la figura \ref{fig:simultaneous_train}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/epsilon_greedy_model.png}
+\caption{Clase de Python con la implementación del algoritmo $\epsilon$-Greedy.}
+\label{fig:epsilon_greedy_model}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/ucb_model.png}
+\caption{Clase de Python con la implementación del algoritmo Upper Confidence Bound.}
+\label{fig:ucb_model}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/ts_model.png}
+\caption{Clase de Python con la implementación del algoritmo Thompson Sampling.}
+\label{fig:ts_model}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/linucb_model.png}
+\caption{Clase de Python con la implementación del algoritmo Linear Upper Confidence Bound.}
+\label{fig:linucb_model}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/lints_model.png}
+\caption{Clase de Python con la implementación del algoritmo Linear Thompson Sampling.}
+\label{fig:lints_model}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=140mm]{../img/simultaneous_train.png}
+\caption{Entrenamiento simultáneo de todos los algoritmos.}
+\label{fig:simultaneous_train}
+\end{figure}
+
+\end{document}

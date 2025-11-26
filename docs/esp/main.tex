@@ -1,0 +1,129 @@
+% Preamble
+\documentclass[11pt,oneside]{book}
+
+% Packages
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[backend=biber, style=apa]{biblatex}
+\usepackage{caption}
+\usepackage{etoolbox}
+\usepackage{float}
+\usepackage[total={155mm, 240mm}, left=30mm, top=28.5mm, includefoot]{geometry}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage[skip=8pt plus 2pt, indent=20pt]{parskip}
+\usepackage{subfiles}
+\usepackage{tabto}
+\usepackage{pdfpages}
+\usepackage[spanish]{babel}
+\addto\captionsspanish{%
+  \renewcommand{\tablename}{Tabla}%
+  \renewcommand{\appendixname}{Anexo}%
+}
+\usepackage{array}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage[utf8]{inputenc}
+
+% To prevent the numeration of pages to appear anywhere and changing between pages
+\usepackage{fancyhdr}
+
+\pagestyle{fancy}
+
+
+%\titleformat{\chapter}[display]{\normalfont\bfseries}{}{0pt}{\huge}
+\addbibresource{bibliography/references.bib}
+
+
+%Captions with source
+\newcommand{\captionwithsource}[2]{
+    \caption{#1}
+    \vspace{-0.5\baselineskip}
+    \caption*{Source: {#2}}
+}
+
+%Multiline tab at 2cm for notation/nomenclature
+\newcommand*{\mltabto}[1]{\tabto{2cm}\parbox[t]{%
+  \dimexpr\textwidth-25mm}{\strut #1 \strut}} %25mm is the right margin
+
+%Reduce chapter spacing on top
+\makeatletter
+\patchcmd{\@makechapterhead}{\vspace*{50\p@}}{\vspace*{30pt}}{}{}%
+\patchcmd{\@makeschapterhead}{\vspace*{50\p@}}{\vspace*{30pt}}{}{}%
+\makeatother
+
+% Document
+\begin{document}
+% \title{ESTUDIO DEL PROBLEMA DEL BANDIDO MULTIBRAZO Y SUS APLICACIONES}
+% \maketitle
+
+\thispagestyle{empty}
+
+%--------------------------------
+% LOGO UAX
+%--------------------------------
+\begin{center}
+    \includegraphics[width=0.6\textwidth]{img/logo_uax.png}
+
+    \vspace{1.5cm}
+
+    {\Large \textbf{UNIVERSIDAD ALFONSO X EL SABIO}} \\[0.3cm]
+    {\large \textbf{FACULTAD BUSINESS\&TECH}}
+    
+    \vspace{3cm}
+
+    %--------------------------------
+    % TÍTULO DEL TFM
+    %--------------------------------
+    {\LARGE \textbf{ESTUDIO DEL PROBLEMA DEL BANDIDO}}\\[0.2cm]
+    {\LARGE \textbf{MULTIBRAZO Y SUS APLICACIONES}}\\[1cm]
+
+    {\large Autor: Eduardo López Pérez}\\[0.2cm]
+    {\large Tutor: Javier Jiménez Raboso}
+
+    \vspace{3cm}
+
+    %--------------------------------
+    % TIPO DE TRABAJO
+    %--------------------------------
+    {\large \textbf{TRABAJO FIN DE MÁSTER}}\\[0.5cm]
+    {\normalsize Máster Universitario en Análisis de Datos Masivos (Big Data)}\\
+    {\normalsize para los Negocios}
+
+    \vfill
+
+    %--------------------------------
+    % FECHA (opcional)
+    %--------------------------------
+    {\normalsize 22 de Agosto 2025}
+
+\end{center}
+
+\frontmatter
+
+\subfile{chapters/resumen.tex}
+
+\subfile{chapters/abstract.tex}
+
+\tableofcontents
+
+\mainmatter
+
+\subfile{chapters/introduction.tex}
+
+\subfile{chapters/motivation.tex}
+
+\subfile{chapters/stateofart.tex}
+
+\subfile{chapters/methodology.tex}
+
+\subfile{chapters/results.tex}
+
+\subfile{chapters/conclusions.tex}
+
+\printbibliography
+
+\appendix
+\subfile{chapters/annex.tex}
+
+\end{document}
