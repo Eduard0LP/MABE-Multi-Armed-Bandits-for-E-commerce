@@ -2,3 +2,15 @@
 build/
 mabe/*.ipynb
 **/__pycache__
+**/.venv
+**/*.aux
+**/*.blg
+**/*.bbl
+**/*.bcf
+**/*.log
+**/*.out
+**/*.run.xml
+**/*.synctex.gz
+**/*.toc
+**/*.pdf
+!docs/master_thesis_esp.pdf
