@@ -14,3 +14,4 @@ mabe/*.ipynb
 **/*.toc
 **/*.pdf
 !docs/master_thesis_esp.pdf
+!docs/master_thesis_eng.pdf
