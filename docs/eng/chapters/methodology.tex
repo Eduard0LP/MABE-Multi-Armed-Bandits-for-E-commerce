@@ -1,0 +1,151 @@
+% Preamble
+\documentclass[../main.tex]{subfiles}
+
+% Document
+\begin{document}
+\chapter{Methodology}\label{ch:methodology}
+
+As previously mentioned, the practical part of this work will consist of applying 
+multi-armed bandits to an e-commerce platform. This section will detail the procedure 
+followed to carry out this use case.  
+
+As is common in reinforcement learning applications, instead of directly using a 
+dataset to train the implemented models, a simulator or bot was built against which 
+the algorithms are used; that is, this bot generates, at each time step (or turn), 
+a reward for the action chosen by the algorithm being used. Once the reward is returned, 
+the policy of the multi-armed bandit algorithm is updated with respect to its preferences 
+over which action to choose in each case, and the process moves to the next turn, where 
+the simulator generates a new user, the algorithm suggests the most suitable action for that 
+user, and the simulator returns the reward for said action.  
+
+In this case, the user corresponds to a user who has accessed the website, the actions are 
+the possible products to recommend, and the reward is whether or not the user clicks on the 
+recommended product in order to make a purchase.  
+
+The simulator used is self-developed, and its operation is as follows:  
+
+\begin{itemize}
+    \item First, a function is used to generate a set of users who will be the potential 
+    customers. These users will have an associated id, age, gender, and preferred product 
+    category.
+    \begin{itemize}
+        \item The id is a number that will allow users to be uniquely identified.
+        \item The age will be generated as a random integer between 15 and 70.
+        \item he gender will be a random choice between male (M) and female (F).
+        \item And the preferred category will be randomly selected from among five 
+        categories: technology, fashion, books, sports, and home.
+    \end{itemize}
+    \item A different function is used to generate the products available on the 
+    e-commerce platform. These products will have an associated id, a category, 
+    a base click rate received by the product on the platform, and an age factor.
+    \begin{itemize}
+        \item In this case, the id will also be an integer number that will allow 
+        products to be uniquely identified.
+        \item The category is the section to which the product belongs. As mentioned 
+        for the user generator, the possible categories will be: technology, fashion, 
+        books, sports, and home. The simulator is designed such that all categories 
+        have the same number of products.
+        \item The base click rate defines the base probability (prior to having any 
+        type of information about the customer or the time of access to the website) 
+        that a given product is clicked if it is recommended to a customer. These 
+        probabilities are generated from a uniform distribution with lower bound 0.15 
+        and upper bound 0.3, $U\left(0.15, 0.3\right)$.
+        \item The age factor estimates how attractive a product is to customers 
+        according to their ages. This factor adds a term that follows a linear function 
+        to the base click rate (more information about this will be given later). The 
+        values of this factor come from random samples of a normal distribution 
+        $N\left(0.1, 0.05\right)$, bounded below by 0.02, meaning that if any of the 
+        sampled values is below 0.02, it is set to that value, and bounded above by 0.4.
+    \end{itemize}
+    \item The third and final component of the simulator is the interaction simulator, 
+    which is responsible for deciding, for each user-product interaction, whether the 
+    user clicked on the recommended product or not.
+\end{itemize}
+
+This decision of whether the user clicked on the recommended product is made by sampling 
+from a Bernoulli distribution, $Bernoulli\left(p\right)$, whose probability is computed 
+as will be explained below:  
+
+For each product, as mentioned previously, there is a base click rate whose values come 
+from samples of a continuous uniform distribution $U\left(0.15, 0.3\right)$.  
+
+This base click rate is multiplied by a factor depending on whether the customer’s preferred 
+product category matches the product category. This factor is 1.5 if they match and 0.75 if 
+they do not.  
+
+It is also multiplied by a gender factor depending on the category of the suggested product. 
+If the user is male and the suggested product belongs to the sports or technology categories, 
+it is multiplied by a factor of 1.1; if it belongs to the other three categories, the factor 
+is 0.9. If the user is female, the factors are reversed: 0.9 for sports and technology products, 
+and 1.1 for the other three categories.  
+
+To this click rate, two additional terms are also added, one of which follows a linear 
+function depending on the user’s age and the other follows another linear function depending on 
+the time at which the user accessed the website.  
+
+Therefore, the final click rate is given by the expression:  
+
+\begin{equation*}
+    ctr = base \cdot cat \cdot gen + age + hour
+\end{equation*}
+
+where $base$ is the base click rate, $cat \in \left\lbrace 0.75 ,1.5\right\rbrace$ is the 
+category-matching factor described above, $gen \in \left\lbrace 0.9 ,1.1\right\rbrace$ is the 
+gender factor also previously described, $age$ is the linear term depending on the user’s age 
+and $hour$ is the linear term depending on the time at which the user accessed the page.  
+
+The age term is given by the expression:  
+
+\begin{equation*}
+    age= \dfrac{a \cdot x}{70}
+\end{equation*}
+
+where $a \in N\left(0.1, 0.05\right)$ is the coefficient of the linear regression and $x$ is the 
+user’s age. The value of $a$ is also constrained to lie within the interval $\left[0.02, 0.4\right]$.  
+
+The hour term is given by the expression:  
+
+\begin{equation*}
+    hour= \dfrac{0.05 \cdot x}{24}
+\end{equation*}
+
+where in this case $x$ is the hour of access to the website.  
+
+After designing this simulator, the next step was to use it as a data generator to train the 
+reinforcement learning algorithms presented in the state of the art section.  
+
+For the case of the multi-armed bandit algorithms that do not use context ($\epsilon$-Greedy, UCB, and TS), 
+this was ignored, whereas for the contextual multi-armed bandit algorithms (LinUCB and LinTS), 
+the context was indeed used. However, since this context contains categorical variables (user gender, 
+user preferred product category, and product category), these variables had to be transformed, as they 
+cannot be directly used to train the linear models underlying these algorithms.  
+
+These variables were encoded using One-Hot encoding, which consists of creating a binary variable for 
+each category of one of these categorical variables, such that the variable takes the value 1 if the 
+selected data point belongs to that category and 0 otherwise.  
+
+There are other alternative ways of encoding these categorical variables, such as ordinal encoding, in 
+which each category of a variable is assigned a different number. However, One-Hot encoding was chosen 
+because it does not introduce any bias between the different categories of a variable, unlike ordinal 
+encoding, which imposes an ordering on the categories.  
+
+Before performing a comparison of the different models, the hyperparameters of the $\epsilon$-Greedy, Upper 
+Confidence Bound, Linear Upper Confidence Bound, and Linear Thompson Sampling algorithms were individually 
+optimized in order to obtain the best possible version of each of these models for a fair comparison.  
+
+Note that the hyperparameters of the Thompson Sampling algorithm were not optimized. This is because this 
+algorithm lacks numerical hyperparameters similar to those of the other algorithms. In this case, the only 
+hyperparameter is the choice of prior distribution used, which was fixed to a beta distribution.  
+
+After this hyperparameter optimization, all models were trained simultaneously, such that the user selected 
+at each time step of the problem was the same for all algorithms. For this user, whether they would click on 
+each of the different products available on the platform was simulated, assuming each of them was recommended 
+to them. Once this was done, the models were called to produce their recommendations, and the result of the 
+suggested product was returned. Using the outcome of each algorithm’s recommendation, they were updated 
+(each one only with the result of its own suggested product), and the process moved on to the next iteration.  
+
+To evaluate the performance of all these algorithms, both cumulative reward and cumulative regret were used. 
+In addition to these metrics, accuracy (number of times the best possible action was suggested divided by the 
+number of time steps) and the proportion of visits that resulted in the user clicking on the suggested product 
+(success rate) were also analyzed.  
+\end{document}

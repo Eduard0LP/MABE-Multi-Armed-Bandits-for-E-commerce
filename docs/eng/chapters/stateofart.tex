@@ -1,0 +1,272 @@
+% Preamble
+\documentclass[../main.tex]{subfiles}
+
+% Document
+\begin{document}
+\chapter{State of the art}\label{ch:stateofart}
+
+In this section an explanation will be given of what both the multi-armed bandit
+problem and the contextual multi-armed bandit problem consist of, and the main
+algorithms that have been used classically in the literature to address these problems
+will be explained in detail.  
+
+The multi-armed bandit problem arises when one is presented with n different options
+(or actions) repeatedly and intends to maximize the reward obtained from the chosen
+options over a stipulated period of time.  
+
+These rewards usually consist of numerical values coming from a stationary probability
+distribution that differs according to the action chosen.  
+
+The example most commonly used to explain this problem is that of a set of slot
+machines. Each slot machine translates into a different arm of the multi-armed bandit
+and the objective of the problem will be to decide which machine to choose to maximize
+the amount of money obtained from the machines' prizes. To maximize these prizes, one
+will try to choose those slot machines that have a higher probability of giving a
+prize.  
+
+Each of the actions of a multi-armed bandit has an expected average reward, which, if
+they were known for each one of the arms, would turn this problem into a trivial
+problem, since one would always choose the action with the best average reward.
+However, these expected average rewards are not known in most cases, or at least not
+exactly. For this reason, in order to estimate what the average reward of each of the
+actions is, it will be necessary to try choosing each one of them and to evaluate the
+rewards obtained so that an estimate can be made of the average of each possible
+option.  
+
+Obtaining a good balance between trying the different possible actions to improve the
+estimates of the average rewards of each of these actions and choosing the action with
+the best average reward according to the available estimates to maximize the reward
+obtained is something fundamental in this type of problems, and is what is known as
+the exploration versus exploitation dilemma or conflict.  
+
+This phenomenon of exploration vs. exploitation is a concept widely studied in the
+field of reinforcement learning, and there is no unique solution that allows solving
+this problem for any multi-armed bandit.  
+
+For this reason, there exists a large number of algorithms that are used nowadays to
+solve this class of problems, each of them balancing in a different way this
+equilibrium between exploration and exploitation.  
+
+Generally speaking, algorithms with a greater degree of exploitation will obtain
+better accumulated rewards in short periods of time, while algorithms with a greater
+degree of exploration will obtain better accumulated rewards in longer periods of
+time, since the latter are more likely to find actions with better average rewards
+than the actions that at first were believed to have the best average rewards among
+all possible actions.  
+
+The most commonly used classical algorithms for solving multi-armed bandit problems
+are the $\epsilon$-greedy algorithm, Upper Confidence Bound (UCB), and Thompson
+Sampling (TS). Below, the mathematics behind each of these algorithms will be
+explained. For more detailed information, \textcite{sutton2018} can be consulted for
+the first two algorithms, and \textcite{russo2017} for Thompson Sampling.  
+
+\textbf{$\epsilon$-greedy algorithm}: This algorithm or group of algorithms consists
+of choosing the action that is expected to give the best reward with probability 
+$\left(1 - \epsilon\right)$. From a formal point of view one has that:  
+
+Given an action $a$, the estimate of the value of said action at a time step $t$ will
+be  
+
+\begin{equation*}
+    Q_{t}\left(a\right) = \dfrac{r_{1} + r_{2} + ... + r_{n_{t}\left(a\right)}}{n_{t}\left(a\right)}
+\end{equation*}
+
+Where $r_{1}, r_{2}, ..., r_{n_{t}\left(a\right)}$ are the rewards of the 
+$n_{t}\left(a\right)$ previous time steps in which action a was chosen. This method 
+to estimate the value of the actions is known as the sample-average method.  
+
+When $n_{t}\left(a\right) = 0$, a default value is assigned to $Q_{t}\left(a\right)$,
+and when $n_{t}\left(a\right) \rightarrow \inf$, by the law of large numbers one has
+that $Q_{t}\left(a\right) = q\left(a\right)$, where $q\left(a\right)$ is the true
+value of action $a$.  
+
+A \textit{greedy} algorithm will choose at time $t$ the action:  
+
+\begin{equation*}
+    a_{t} = argmax_{a} Q_{t}\left(a\right)
+\end{equation*}
+
+Where $a_{t}$ is the action chosen at time $t$. In case there are several actions that
+maximize $Q_{t}$, the chosen action will be a random one among all that maximize it.  
+
+The $\epsilon$-greedy algorithm will choose that action with probability 
+$\left(1 - \epsilon\right)$, with $\epsilon$ being a fixed value belonging to the
+interval $\left[0, 1\right]$, and a different action chosen completely at random with
+probability$\epsilon$.  
+
+When $\epsilon = 0$, we will be in the case of a completely \textit{greedy} algorithm,
+and when $\epsilon = 1$, we will be in the case of an algorithm that chooses actions
+completely at random.  
+
+\textbf{Upper Confidence Bound (UCB) algorithm}: Contrary to the case of 
+$\epsilon$-greedy methods, the exploration of the actions that a priori are not
+optimal is carried out following a strategy different from choosing a random action
+among all possible ones. In the case of the UCB algorithm, the choice of the action to
+explore is made depending on the potential that each of the actions has to end up
+maximizing the reward, taking into account both how close the estimate of the mean of
+each action is to the action whose average reward is the maximum, and the uncertainty
+of such estimates.  
+
+The decision of which action to choose is made in this case following the formula:  
+
+\begin{equation*}
+    a_{t} = argmax_{a}\left[Q_{t}\left(a\right) + \alpha \sqrt{\dfrac{ln t}{n_{t}\left(a\right)}}\right]
+\end{equation*}
+
+Where $ln t$ denotes the natural logarithm of $t$ and $\alpha > 0$ is an adjustable 
+parameter that controls the degree of exploration of the algorithm. If 
+$n_{t}\left(a\right) = 0$, $a$ is considered to be maximizing the action, thus avoiding 
+divisions by 0.  
+
+The term that is found inside the square root serves as a measure of the uncertainty 
+of the estimation of the reward value of action $a$.  
+
+\textbf{Thompson Sampling (TS) algorithm}: This algorithm has a more probabilistic 
+component than the previous algorithms, which are based on estimating the action to 
+choose empirically and directly from the results of the actions chosen in previous 
+time steps.  
+
+In this case, it is assumed that the rewards of the different actions to choose from 
+follow probability distributions defined a priori and that are updated each time an 
+action is chosen and a reward is obtained.  
+
+More formally: given an a priori probability distribution $p_{0}\left(a\right)$, for 
+each action $a$, at each step of the Thompson Sampling algorithm a 
+$\hat{Q}_{t}\left(a\right) ~ p_{t}\left(a\right)$ is randomly sampled, where 
+$p_{t}\left(a\right)$ is the a posteriori probability distribution at step $t$ of 
+action $a$. For that time $t$, the chosen action will be:  
+
+\begin{equation*}
+    a_{t} = argmax_{a}\hat{Q}_{t}\left(a\right)
+\end{equation*}
+
+The a posteriori probability distribution is obtained from $p_{0}\left(a\right)$, 
+applying Bayes’ theorem in the following way:  
+
+\begin{equation*}
+    p\left(a | r_{1}, ..., r_{n_{t}\left(a\right)}\right) = \dfrac{p\left(r_{1}, ..., r_{n_{t}\left(a\right)} | a\right) \cdot p_{0}\left(a\right)}{p\left(r_{1}, ..., r_{n_{t}\left(a\right)}\right)}
+\end{equation*}
+
+Where $a$ is the action for which the probability distribution is to be estimated, 
+$r_{1}, ..., r_{n_{t}\left(a\right)}$ are the rewards of the $n_{t}\left(a\right)$ 
+previous time steps in which said action was chosen, and 
+$p\left(a | r_{1}, ..., r_{n_{t}\left(a\right)}\right) = p_{t}\left(a\right)$.  
+
+This update of the a posteriori distribution can be carried out at each time step 
+by means of the recursive formula:  
+
+\begin{equation*}
+    p_{t+1}\left(a\right) \propto p\left(r_{t} | a\right) \cdot p_{t}\left(a\right)
+\end{equation*}
+
+A widely known and studied extension of the multi-armed bandit problem is the 
+so-called contextual multi-armed bandit. In this problem, in addition to the 
+information available in a classical multi-armed bandit problem, there is also a context, 
+which is known before making any decision and provides relevant information about the 
+environment or the user, potentially helping to make a better decision regarding which 
+action to choose.  
+
+This context, which will be denoted as $x_{t} \in X$, is usually given as a feature vector. 
+The different available contexts are used to fit models (a different model for each 
+available action) to predict the reward that will be obtained in each case.  
+
+Classically, the models used for this purpose were linear models, although nowadays more 
+complex nonlinear models based on neural networks or decision trees are also used.  
+
+In this document, the Linear Upper Confidence Bound (LinUCB) and Linear Thompson Sampling 
+(LinTS) algorithms will be covered, which are extensions of the previously presented 
+algorithms to contextual multi-armed bandits through the use of linear algorithms to model 
+the context. For more information about the first algorithm, see \textcite{zhou2015}, and 
+for the second, \textcite{russo2017}.  
+
+\textbf{Linear Upper Confidence Bound (LinUCB) algorithm}: It consists of an extension of 
+the UCB algorithm through the use of linear models to represent the context. More 
+rigorously, this algorithm can be stated as follows:
+
+Given a context $x_{t, a} \in \mathbb{R}^{d}$ for each action $a$ and each time $t$, the 
+expected reward is assumed to be a linear function of the context in the following form:  
+
+\begin{equation*}
+    Q_{t}\left(a\right) = x_{t, a}^{\top}\theta^{*}
+\end{equation*}
+
+Where $\theta^{*} \in \mathbb{R}^{d}$ is an unknown parameter vector which allows 
+minimization of the loss function  
+
+\begin{equation*}
+    R\left(T\right) = \sum_{t = 1}^{T} \left(x_{t, a_{t}^{*}}^{\top}\theta^{*} - x_{t, a_{t}}^{\top}\theta^{*}\right)
+\end{equation*}
+
+Where $a_{t}^{*} =argmax_{a \in A} x_{t, a}^{\top}\theta^{*}$.  
+
+This loss function is known as cumulative regret.  
+
+At each step of the algorithm, there is an estimate of $\theta^{*}$ obtained from 
+the linear model. This estimate will be denoted as $\hat{\theta}_{t}$, and the 
+action chosen at each step will be:  
+
+\begin{equation*}
+    a_{t} = argmax_{a} x_{t, a}^{\top}\hat{\theta}_{t-1} + \alpha \cdot \sqrt{x_{t, a}^{\top} A_{t-1}^{-1}x_{t, a}}
+\end{equation*}
+
+Where $\alpha > 0$ is the same adjustable parameter that controls the degree of 
+exploration of the UCB algorithm, and the matrix $A_{t-1}$ comes from the linear 
+model, which consists of a ridge (regularized) regression of the following form:  
+
+\begin{equation*}
+    \hat{\theta}_{t} = A_{t}^{-1} b_{t}
+\end{equation*}
+
+Where  
+
+\begin{equation*}
+    A_{t} = \lambda I + \sum_{s=1}^{t} x_{s, a_{s}} x_{s, a_{s}}^{\top} \in \mathbb{R}^{d \times d}
+\end{equation*}
+
+\begin{equation*}
+    b_{t} = \sum_{s=1}^{t} r_{s} x_{s, a_{s}} \in \mathbb{R^{d}}
+\end{equation*}
+
+\begin{equation*}
+    A_{0} = \lambda I
+\end{equation*}
+
+with $\lambda$ being the trainable parameter of the linear regression, $I$ the 
+identity matrix, $r_{s}$ the reward at time $s$, and $x_{s, a_{s}}$ the context 
+for action $a_{s}$ at time $s$.  
+
+\textbf{Linear Thompson Sampling (LinTS) algorithm}: It is an extension of the 
+Thompson Sampling algorithm through the use of linear models to account for 
+context.  
+
+As in the previous algorithm, the expected reward is given by the equation:  
+
+\begin{equation*}
+    Q_{t}\left(a\right) = x_{t, a}^{\top}\theta^{*}
+\end{equation*}
+
+However, in this case, $\hat{\theta}_{t}$, the estimate of the parameter vector 
+$\theta^{*}$, consists of a random sample from a posterior distribution over 
+parameter vectors, $p_{t}\left(\theta\right)$, which is computed from a prior 
+distribution $p_{0}\left(\theta\right)$, applying Bayes’ theorem in a manner 
+analogous to the Thompson Sampling algorithm, provided that this prior 
+distribution is conjugate to the posterior, i.e., they belong to the same family. 
+If this is not the case, numerical methods such as Markov Chain Monte Carlo (MCMC) 
+must be used to compute the posterior distribution.  
+
+Therefore, taking $\hat{\theta}_{t} \sim p_{t}\left(\theta\right)$, the chosen 
+action is:  
+
+\begin{equation*}
+    a_{t} = argmax_{a}x_{t, a}^{\top}\hat{\theta}_{t}
+\end{equation*}
+
+Finally, it is worth mentioning that extending these linear models to incorporate 
+context into nonlinear models consists of replacing the linear expression 
+$Q_{t}\left(a\right)=x_{t, a}^{\top} \theta^{*}$ with a nonlinear expression 
+$Q_{t}\left(a\right)=f^{*}\left(x_{t , a}\right)$, where $f^{*}$ is a nonlinear 
+function.  
+
+However, this transition from a linear function to a nonlinear one entails a 
+series of theoretical complications that will not be addressed in this work.  
+\end{document}
